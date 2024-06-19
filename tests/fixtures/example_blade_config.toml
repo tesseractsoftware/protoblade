@@ -1,0 +1,13 @@
+# Example blade TOML file for testing
+
+name = "Test Blade"
+units = 'metres'
+n_blade = 60
+axis = [ [0.0,0.0,0.0] , [0.0,0.0,1.0] ]
+
+ps_section_fname = 'ps.fpd'
+ss_section_fname = 'ss.fpd'
+
+endwall_type='fpd'
+hub_fname = 'hub.fpd'
+shroud_fname = 'shroud.fpd'
