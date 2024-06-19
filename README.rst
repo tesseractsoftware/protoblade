@@ -1,7 +1,7 @@
 |docs| |codecov|
 
 .. |codecov| image:: https://codecov.io/gh/tesseractsoftware/protoblade/graph/badge.svg?token=YZHI6F7OS1 
-    :target: https://codecov.io/gh/otterwellconsulting/protoblade
+    :target: https://codecov.io/gh/tesseractsoftware/protoblade
 
 .. |docs|  image:: https://readthedocs.org/projects/protoblade/badge/?version=latest
     :target: https://protoblade.readthedocs.io/en/latest/?badge=latest
