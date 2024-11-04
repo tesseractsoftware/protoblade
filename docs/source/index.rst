@@ -19,6 +19,7 @@ Contents
     installation
     usage
     examples
+    input_files
     section_def
     endwalls
     nomenclature

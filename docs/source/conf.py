@@ -16,8 +16,8 @@ print(pathlib.Path(__file__).parent.parent.parent /'src')
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ProtoBlade'
-copyright = '2024, Otterwell Consulting Limited'
-author = 'Otterwell Consulting'
+copyright = '2024, Tesseract Software Limited'
+author = 'Tesseract Software'
 release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------

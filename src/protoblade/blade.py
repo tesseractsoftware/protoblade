@@ -1,87 +1,49 @@
-"""A set of functions and classes to handle represent a turbomachinery blade."""
+"""A set of functions and classes to handle represent a turbomachinery blade section."""
 from __future__ import annotations
 from numpy.typing import NDArray
 import numpy as np
 from protoblade import geom
-import tomli
-from atom.api import Atom, Int,List,Enum,Str,Typed,Property,Float,Tuple
+from atom.api import Atom, Int, Enum,Str,Typed,Property, Tuple,Float
 
-ENDWALL_TYPES = ['fpd','step']
-
-class Endwalls(Atom):
-    """Hold objects required to define endwalls."""
-
-    hub = Typed(np.ndarray)
-    shroud = Typed(np.ndarray)
-    type= Enum(*ENDWALL_TYPES)
-
-    endwall_fname = Str()
-
-class CoreBlade(Atom):
-    """Core entities required to define a turbomachinery blade."""
-
+class Blade(Atom):
+    #TODO rename BladeSection?
+    """Represents a turbomachinery blade."""
     name = Str()
     n_blade = Int()
-    units = Enum('metres','millimetres')
-    axis = Tuple(Tuple(float))
-
-class BladeConfig(CoreBlade):
-    """Holds data required to config a new Blade instance."""
-
-    ps_section_fname = Str()
-    ss_section_fname = Str()
-    endwall_type = Str()
-    hub_fname = Str()
-    shroud_fname = Str()
-    endwall_fname = Str()
-
-class Blade(CoreBlade):
-    """Represents a turbomachinery blade."""
-
     n_sections = Property(Int)
     ps_sections = Typed(np.ndarray)
     ss_sections = Typed(np.ndarray)
-    endwalls = Typed(Endwalls)
+    interface_location = Float(0.0)
 
 
     pitch_angle_rad = Property()
 
+    @classmethod
+    def from_config(cls,config):
+        blade = Blade()
+        blade.name = config['name']
+        blade.n_blade = config['n_blade']
+
+        for surf,fname in  [('ps_sections',config['ps_section_fname']),('ss_sections',config['ss_section_fname'])]:
+            blade._load_sections(fname,surf)
+
+        if 'interface_location' in config.keys():
+            blade.interface_location = config['interface_location']
+        return blade
+
+    def _load_sections(self,fname:str,surf:str):
+        try:
+            setattr(self,surf,geom.load_curves_from_fpd(fname))
+        except FileNotFoundError:
+            raise
+
+    def _get_n_sections(self) -> int:
+        return len(self.ps_sections)
+
+
     def _get_pitch_angle_rad(self) ->float:
         return 2.0 * np.pi / self.n_blade
 
-
-    @classmethod
-    def from_config(cls,fname:str)->Blade:
-        """Create instance of class from a toml file."""
-        config = BladeConfig(**_read_toml(fname))
-
-        endwall_dict = {
-            'type' : config.endwall_type,
-            'hub': geom.load_curves_from_fpd(config.hub_fname) if config.endwall_type=='fpd' else None,
-            'shroud': geom.load_curves_from_fpd(config.shroud_fname) if config.endwall_type =='fpd' else None,
-            'endwall_fname' : config.endwall_fname,
-        }
-
-        init_dict ={'ps_sections': geom.load_curves_from_fpd(config.ps_section_fname),
-                    'ss_sections' : geom.load_curves_from_fpd(config.ss_section_fname),
-                    'name':config.name,
-                    'n_blade':config.n_blade,
-                    'endwalls':Endwalls(**endwall_dict),
-                    'axis':config.axis}
-
-
-
-
-
-        return cls(**init_dict)
-
-
-def _read_toml(fname:str)->dict:
-    """Read a toml configuratino file."""
-    with open(fname, mode="rb") as fp:
-        config = tomli.load(fp)
-    config['axis'] = tuple([tuple(x) for x in config['axis']] )
-    return config
 
 #TODO: this should use the radial extrusion function
 def create_sections_from_2D_profile(ps:NDArray,ss:NDArray,N_sections:int,r_extents:tuple,use_r_theta:bool=True,del_x:float=0,n_resample:int=0):

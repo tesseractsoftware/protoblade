@@ -1,6 +1,9 @@
+.. _SectionDef:
+
 Definition of Blade Sections
 ===============================
 
+.. _FPDFile:
 Formatted Point Data File
 ------------------------------
 Blade sections are defined in Formatted Point Data (FPD) files. The header for these file should be  two space-delimited integers :  |Npoints| and |Nsections|. |Npoints| is the number of points per section (and this must be constant for each section within the file) and |Nsections| is the number of sections contained within the file. The lines after the header must take the form of three space delimited floating point numbers which represent the X,Y and Z coordinates of each point for the section.

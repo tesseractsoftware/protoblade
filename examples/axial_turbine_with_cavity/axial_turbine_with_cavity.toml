@@ -1,12 +1,19 @@
 #Example TOML file for an axial turbine blade. This blade is based on the VKI transonic turbine (add ref)
+[machine]
 
 name = "Axial Turbine"
 units = 'metres'
 axis = [ [0.0,0.0,0.0] , [0.0,0.0,1.0] ]
-n_blade = 100
 
+[[stage]]
+name = 'stage_1'
+
+[[stage.endwall]]
+type='step'
+step_fname = 'with_cavity.step'
+
+[[stage.blade_section]]
+name = 'stator'
+n_blade = 60
 ps_section_fname = 'vki_ps.fpd'
 ss_section_fname = 'vki_ss.fpd'
-
-endwall_type = 'step'
-endwall_fname ='with_cavity.step'

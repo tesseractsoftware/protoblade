@@ -1,9 +1,9 @@
 """Module with classes and functions to create CAD models from protoblade classes."""
-import cadquery as cq
+import cadquery
 from numpy.typing import NDArray
-from typing import Tuple,List
+from typing import Tuple,List, Literal
 import numpy as np
-from  protoblade import  geom
+from  protoblade import  geom, stage
 from protoblade.blade import Blade
 def _convert_array_to_list(pts:NDArray)-> List[Tuple]:
     return [tuple(pt) for pt in pts]
@@ -13,9 +13,21 @@ class DomainCreator:
 
     blade_def : Blade
 
-    def __init__(self,blade_def:Blade):
-        """Create the object from a Blade instance."""
+    def __init__(self,
+                 blade_def:Blade,
+                 endwalls:stage.Endwalls,
+                 units:str,
+                 axis:tuple,
+                 cq=cadquery
+                 ):
+        """Create the object from a Stage instance."""
+        #TODO : probaly want this to be a stage rather than blade - actually maybe not?
         self.blade_def = blade_def
+        self.endwalls = endwalls
+        self.units = units
+        self.axis = axis
+        #TODO: add function to cut domain at a given location
+        self._cq = cq # add cadquery as an object to allow for test mock to be easily added
 
     def extrude_blade(self):
         """Extrude/loft the blade sections to create the main blade."""
@@ -25,44 +37,44 @@ class DomainCreator:
         ss_edges = []
         for i in range(N_sections):
             ss_pts = _convert_array_to_list(self.blade_def.ss_sections[i])
-            ss_edges.append(cq.Edge.makeSpline([cq.Vector(p) for p in ss_pts]))
+            ss_edges.append(self._cq.Edge.makeSpline([self._cq.Vector(p) for p in ss_pts]))
 
             ps_pts = _convert_array_to_list(self.blade_def.ps_sections[i])
-            ps_edges.append(cq.Edge.makeSpline([cq.Vector(p) for p in ps_pts]))
+            ps_edges.append(self._cq.Edge.makeSpline([self._cq.Vector(p) for p in ps_pts]))
 
-        blade_ss = cq.Solid.makeLoft(
-            [cq.Wire.assembleEdges([edge]) for edge in ss_edges]
+        blade_ss = self._cq.Solid.makeLoft(
+            [self._cq.Wire.assembleEdges([edge]) for edge in ss_edges]
         )
 
-        blade_ps = cq.Solid.makeLoft(
-            [cq.Wire.assembleEdges([edge]) for edge in ps_edges]
+        blade_ps = self._cq.Solid.makeLoft(
+            [self._cq.Wire.assembleEdges([edge]) for edge in ps_edges]
         )
 
-        top = cq.Solid.makeLoft(
-            [cq.Wire.assembleEdges([edge]) for edge in [ps_edges[0], ss_edges[0]]]
+        top = self._cq.Solid.makeLoft(
+            [self._cq.Wire.assembleEdges([edge]) for edge in [ps_edges[0], ss_edges[0]]]
         )
 
-        bottom = cq.Solid.makeLoft(
-            [cq.Wire.assembleEdges([edge]) for edge in [ps_edges[-1], ss_edges[-1]]]
+        bottom = self._cq.Solid.makeLoft(
+            [self._cq.Wire.assembleEdges([edge]) for edge in [ps_edges[-1], ss_edges[-1]]]
         )
 
-        shell = cq.Shell.makeShell([blade_ss.faces(), bottom.faces(), blade_ps.faces(), top.faces()])
-        solid = cq.Solid.makeSolid(shell)
+        shell = self._cq.Shell.makeShell([blade_ss.faces(), bottom.faces(), blade_ps.faces(), top.faces()])
+        solid = self._cq.Solid.makeSolid(shell)
 
 
         self.blade = solid
 
     def create_endwalls(self):
         """Create CAD objects for the endwalls."""
-        if self.blade_def.endwalls.type == 'fpd':
-            hub_pts = _convert_array_to_list(self.blade_def.endwalls.hub)
-            shroud_pts = _convert_array_to_list(self.blade_def.endwalls.shroud)
+        if self.endwalls.type == 'fpd':
+            hub_pts = _convert_array_to_list(self.endwalls.hub)
+            shroud_pts = _convert_array_to_list(self.endwalls.shroud)
 
-            self.endwalls =  cq.Workplane("XY").spline(hub_pts).polyline([hub_pts[-1], shroud_pts[-1]]).spline(
+            self.cad_endwalls =  self._cq.Workplane("XY").spline(hub_pts).polyline([hub_pts[-1], shroud_pts[-1]]).spline(
                 shroud_pts[::-1]).polyline(
-                [shroud_pts[0], hub_pts[0]]).close().revolve(360.0, self.blade_def.axis[0], self.blade_def.axis[1])
+                [shroud_pts[0], hub_pts[0]]).close().revolve(360.0, self.axis[0], self.axis[1])
         else:
-            self.endwalls = cq.importers.importStep(self.blade_def.endwalls.endwall_fname)
+            self.cad_endwalls = self._cq.importers.importStep(self.endwalls.step_fname)
 
     def export(self,entity:str,fname_out:str)->None:
         """Export an entity from this class to a CAD output format.
@@ -77,13 +89,13 @@ class DomainCreator:
         """
         to_export = getattr(self,entity)
         if to_export:
-            cq.exporters.export(to_export, str(fname_out))
+            self._cq.exporters.export(to_export, str(fname_out))
 
 
     def create_periodic(self):
         """Create a CAD object to represent the periodic fluid domain."""
-        z_min = self.endwalls.objects[0].BoundingBox().zmin
-        z_max = self.endwalls.objects[0].BoundingBox().zmax
+        z_min = self.cad_endwalls.objects[0].BoundingBox().zmin
+        z_max = self.cad_endwalls.objects[0].BoundingBox().zmax
 
         edges = []
 
@@ -91,7 +103,7 @@ class DomainCreator:
         r_min_ps = np.min(np.hypot(self.blade_def.ps_sections[0]['x'],self.blade_def.ps_sections[0]['y']))
         r_min_ss = np.min(np.hypot(self.blade_def.ss_sections[0]['x'],self.blade_def.ss_sections[0]['y']))
 
-        endwall_min_r,endwall_max_r = find_radial_extent_of_axisymmetric_object(self.endwalls)
+        endwall_min_r,endwall_max_r = find_radial_extent_of_axisymmetric_object(self.cad_endwalls)
 
         if r_min_ps > endwall_min_r:
             del_r = endwall_min_r - r_min_ps
@@ -111,13 +123,13 @@ class DomainCreator:
         mid_points = geom.create_midlines(ps_sections,ss_sections,z_min,z_max,self.blade_def.pitch_angle_rad)
         for i in range(len(mid_points)):
             pts = _convert_array_to_list(mid_points[i])
-            edges.append(cq.Edge.makeSpline([cq.Vector(p) for p in pts]))
+            edges.append(self._cq.Edge.makeSpline([self._cq.Vector(p) for p in pts]))
 
-        per = cq.Solid.makeLoft(
-            [cq.Wire.assembleEdges([edge]) for edge in edges]
+        per = self._cq.Solid.makeLoft(
+            [self._cq.Wire.assembleEdges([edge]) for edge in edges]
         )
 
-        self.per  = cq.Solid.revolve(per.Faces()[0], -np.rad2deg(self.blade_def.pitch_angle_rad), self.blade_def.axis[0] , self.blade_def.axis[1])
+        self.per  = self._cq.Solid.revolve(per.Faces()[0], -np.rad2deg(self.blade_def.pitch_angle_rad), self.axis[0] , self.axis[1])
 
 
     def create_domain(self):
@@ -133,13 +145,13 @@ class DomainCreator:
         self.create_endwalls()
         self.create_periodic()
 
-        blade_wp = cq.Workplane("XY").add(self.blade)
-        per_wp = cq.Workplane("XY").add(self.per)
-        per_and_endwalls = per_wp & self.endwalls
+        blade_wp = self._cq.Workplane("XY").add(self.blade)
+        per_wp = self._cq.Workplane("XY").add(self.per)
+        per_and_endwalls = per_wp & self.cad_endwalls
         self.domain = per_and_endwalls - blade_wp
 
 
-def find_radial_extent_of_axisymmetric_object(input:cq.Workplane)->(float,float):
+def find_radial_extent_of_axisymmetric_object(input:cadquery.Workplane)->(float,float):
     """
     Find the radial extent of an axisymmetric object by taking a slice at Y=0 (therefore X=R).
 
@@ -153,22 +165,22 @@ def find_radial_extent_of_axisymmetric_object(input:cq.Workplane)->(float,float)
     result2 = \
         input \
             .split(
-            cq.Workplane()
-            .add(cq.Face
+            cadquery.Workplane()
+            .add(cadquery.Face
             .makePlane(
                 5, 5,
-                cq.Vector(0, 0, 0.0),
-                cq.Vector(1, 0, 0)))).solids(">>X")
+                cadquery.Vector(0, 0, 0.0),
+                cadquery.Vector(1, 0, 0)))).solids(">>X")
 
     result3 = \
         result2 \
             .split(
-            cq.Workplane()
-            .add(cq.Face
+            cadquery.Workplane()
+            .add(cadquery.Face
             .makePlane(
                 5, 5,
-                cq.Vector(0, 0, 0.0),
-                cq.Vector(0, 1, 0)))).solids("<<Y")
+                cadquery.Vector(0, 0, 0.0),
+                cadquery.Vector(0, 1, 0)))).solids("<<Y")
 
     result4 = result3.faces(">Y")
 

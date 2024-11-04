@@ -1,7 +1,8 @@
-#Example TOML file for an axial turbine blade. This blade is based on the VKI transonic turbine (add ref)
+# Example blade TOML file for testing
+
 [machine]
 
-name = "Axial Turbine"
+name = "Test Blade"
 units = 'metres'
 axis = [ [0.0,0.0,0.0] , [0.0,0.0,1.0] ]
 
@@ -16,5 +17,6 @@ shroud_fname = 'shroud.fpd'
 [[stage.blade_section]]
 name = 'stator'
 n_blade = 60
-ps_section_fname = 'vki_ps.fpd'
-ss_section_fname = 'vki_ss.fpd'
+ps_section_fname = 'ps.fpd'
+ss_section_fname = 'ss.fpd'
+

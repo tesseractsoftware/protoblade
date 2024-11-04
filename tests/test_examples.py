@@ -13,8 +13,8 @@ def test_example_axial_turbine(example_directory,tmp_path,vki_cad_fixtures):
     fname_final = pathlib.Path(tmp_path) / 'final.step'
 
     main('axial_turbine.toml',fname_final)
-
-    filecmp.cmp(fname_final,vki_cad_fixtures['final'],shallow=False)
+    fname_2 = pathlib.Path(tmp_path) / 'final-stage_1-stator.step'
+    filecmp.cmp(fname_2,vki_cad_fixtures['final'],shallow=False)
 
 def test_example_axial_turbine_with_cavity(example_directory,tmp_path,vki_cad_fixtures):
     copy_tree(example_directory / 'axial_turbine_with_cavity', str(tmp_path))
@@ -22,5 +22,6 @@ def test_example_axial_turbine_with_cavity(example_directory,tmp_path,vki_cad_fi
     fname_final = pathlib.Path(tmp_path) / 'final_with_cavity.step'
 
     main('axial_turbine_with_cavity.toml', fname_final)
+    fname_2 = pathlib.Path(tmp_path) / 'final_with_cavity-stage_1-stator.step'
 
-    filecmp.cmp(fname_final, vki_cad_fixtures['final_with_cavity'],shallow=False)
+    filecmp.cmp(fname_2, vki_cad_fixtures['final_with_cavity'],shallow=False)

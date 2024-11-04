@@ -2,12 +2,12 @@
 name = "protoblade"
 version = "0.0.1"
 description = ""
-authors = ["Otterwell Consulting"]
+authors = ["Tesseract Software"]
 license = "Apache Software Licence"
 readme = "README.rst"
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = "~3.8 | ~3.9 | ~3.10 | ~3.11"
 numpy = "*"
 scipy = "*"
 cadquery= "*"
@@ -27,6 +27,7 @@ pydoclint='*'
 coverage='*'
 pytest-cov='*'
 codecov='*'
+pytest-mock='*'
 
 [build-system]
 requires = ["poetry-core"]

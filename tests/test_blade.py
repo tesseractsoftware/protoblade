@@ -31,15 +31,5 @@ def test_create_sections_from_2D_profile(vki_files):
 
 
 
-def test_read_blade_configs(example_blade_configs):
-    for config in example_blade_configs:
-        obj = blade.BladeConfig(**blade._read_toml(config))
 
-        #blade.Blade.from_config(config)
 
-def test_init_endwall():
-    endwall = blade.Endwalls(type='fpd')
-
-def test_init_blade():
-    ex_blade = blade.Blade(
-                           units='metres')

@@ -76,10 +76,10 @@ def vki_cad_fixtures():
 
 
 @pytest.fixture()
-def example_blade_configs():
+def example_machine_configs():
     return [
-        fixture_dir / "example_blade_config.toml",
-        fixture_dir / "example_blade_config_step_endwall.toml",
+        fixture_dir / "example_machine_config.toml",
+        fixture_dir / "example_machine_config_step_endwall.toml",
         ]
 
 @pytest.fixture()
