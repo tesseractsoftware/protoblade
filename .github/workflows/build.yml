@@ -82,8 +82,8 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         cd dist 
-        python -m pip install --find-links=. protoblade
-        cd ..
+        for %%w in (*.whl) do pip install %%w
+        cd .. 
 
     #Step 5 : Run an example case
     - name : Run Example Case
