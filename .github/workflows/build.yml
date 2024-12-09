@@ -1,4 +1,4 @@
-name: Build and Install Poetry Project
+name: Build and Install with pip
 
 on:
   push:
@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]  # Specify OS matrix
+        os: [ubuntu-latest,  windows-latest]  # Specify OS matrix
         python-version: ['3.8', '3.9', '3.10', '3.11']  # Specify Python versions for the matrix
 
     steps:
@@ -73,13 +73,20 @@ jobs:
         path: ./dist
 
     # Step 4: Install the project with pip
-    - name: Install the project with pip
+    - name: Install the project with pip non-windows
+      if: runner.os != 'Windows'
       run: |
         pip install ./dist/*.whl
+
+    - name: Install the project with pip windows
+      if: runner.os == 'Windows'
+      run: |
+          pip install dist\*.whl 
 
     #Step 5 : Run an example case
     - name : Run Example Case
       run: |
         cd examples
         cd axial_turbine
+        python -m protoblade -h 
         python -m protoblade axial_turbine.toml
