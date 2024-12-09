@@ -57,6 +57,8 @@ Quick Start
 =========================================
 Full details of how to install and use ProtoBlade are given in the docs. A quick start is outlined below.
 
+ProtoBlade is currently supports on Windows (python versions 3.8,3.9 and 3.10) and Linux (python versions >3.8).
+
 First, create a new virtual environment an then activate it. Once this is done use pip to install ProtoBlade:
 
 .. code:: bash
