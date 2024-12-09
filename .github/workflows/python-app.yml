@@ -58,11 +58,15 @@ jobs:
       run: |
         source .venv/bin/activate
         pytest --cov=./src/protoblade --cov-report=xml tests/
+        cd examples/axial_turbine 
+        python -m protoblade axial_turbine.toml
     - name: Run Windows tests
       if: runner.os == 'Windows'
       run: |
         source .venv/scripts/activate
         pytest --cov=./src/protoblade --cov-report=xml tests/ 
+        cd examples\axial_turbine
+        python -m protoblade axial_turbine.toml
       #-----------------------------------------------
       #      upload to codecov 
       #-----------------------------------------------

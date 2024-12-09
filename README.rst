@@ -57,13 +57,18 @@ Quick Start
 =========================================
 Full details of how to install and use ProtoBlade are given in the docs. A quick start is outlined below.
 
-ProtoBlade can be installed or via pip (which requires a valid Python interpreter  on your system).
+First, create a new virtual environment an then activate it. Once this is done use pip to install ProtoBlade:
+
+.. code:: bash
+
+    pip install protoblade
+
 
 After installing ProtoBlade you will be to able to run it from a terminal.
 
 .. code:: bash
 
-    protoblade example.toml
+    python -m protoblade example.toml
 
 Where example.toml if the filepath of the file you wish to process. The output of this process will be a a step file axial_turbine.step. This will be a 3D solid body CAD model of the turbine blade including periodic surfaces. See the animation above. 
 
