@@ -81,7 +81,9 @@ jobs:
     - name: Install the project with pip windows
       if: runner.os == 'Windows'
       run: |
-        python -m pip install --find-links=dist protoblade
+        cd dist 
+        python -m pip install --find-links=. protoblade
+        cd ..
 
     #Step 5 : Run an example case
     - name : Run Example Case
