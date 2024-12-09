@@ -81,6 +81,7 @@ jobs:
     - name: Install the project with pip windows
       if: runner.os == 'Windows'
       run: |
+        python -m pip install numpy==1.24
         python -m pip install --find-links=dist protoblade
 
     #Step 5 : Run an example case
