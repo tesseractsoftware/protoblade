@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "protoblade"
-version = "0.0.1"
+version = "0.0.0"
 description = ""
 authors = ["Tesseract Software"]
 license = "Apache Software Licence"
 readme = "README.rst"
 
 [tool.poetry.dependencies]
-python = "~3.8 | ~3.9 | ~3.10 | ~3.11"
+python = ">=3.8"
 numpy = "*"
 scipy = "*"
 cadquery= "*"
@@ -29,6 +29,9 @@ pytest-cov='*'
 codecov='*'
 pytest-mock='*'
 
+
+[tool.poetry-dynamic-versioning]
+enable = true
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
