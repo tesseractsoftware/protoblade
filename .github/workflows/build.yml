@@ -81,9 +81,8 @@ jobs:
     - name: Install the project with pip windows
       if: runner.os == 'Windows'
       run: |
-        cd dist 
-        for %%w in (*.whl) do pip install %%w
-        cd .. 
+        $files = Get-ChildItem "dist\*.whl"
+        foreach ($f in $files){ pip install $f}
 
     #Step 5 : Run an example case
     - name : Run Example Case
