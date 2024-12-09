@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "protoblade"
-version = "0.0.0"
+version = "0.1.0.post7.dev0+66ae2d0"
 description = ""
 authors = ["Tesseract Software"]
 license = "Apache Software Licence"
@@ -8,13 +8,13 @@ readme = "README.rst"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-numpy = "*"
-scipy = "*"
-cadquery= "*"
-tomli ="*"
-tomli_w ="*"
-tomlkit = "*"
-atom = "*"
+numpy = "^1.24"
+scipy = "^1"
+cadquery= "^2.4"
+tomli ="^2"
+tomli_w ="^1"
+tomlkit = "^0.13"
+atom = "^0.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.1"
@@ -31,7 +31,7 @@ pytest-mock='*'
 
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 build-backend = "poetry_dynamic_versioning.backend"

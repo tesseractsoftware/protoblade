@@ -1,4 +1,4 @@
-name: Build and Install Python Package on Multiple OSs
+name: Build and Install Poetry Project
 
 on:
   push:
@@ -9,60 +9,76 @@ on:
       - main
 
 jobs:
-  build_and_install:
-    runs-on: ${{ matrix.os }}
+  build:
+    runs-on: ubuntu-latest  # Build job runs on a single OS (ubuntu-latest)
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8  # You can specify any version here since we are building the wheel only once
+
+    # Step 3: Install Poetry
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+
+    # Step 4: Install dependencies with Poetry
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install
+
+    # Step 5: Build the Poetry project
+    - name: Build the Poetry project
+      run: |
+        poetry build
+        ls dist/
+
+    # Step 6: Upload wheel file as artifact
+    - name: Upload wheel file as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: poetry-wheel
+        path: dist/*.whl
+
+  install:
+    runs-on: ${{ matrix.os }}  # Install job runs on the matrix of OS and Python versions
+    needs: build  # Ensure install runs after build job completes
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10']
+        os: [ubuntu-latest, macos-latest, windows-latest]  # Specify OS matrix
+        python-version: ['3.8', '3.9', '3.10', '3.11']  # Specify Python versions for the matrix
 
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    # Step 1: Checkout the code (again, as this is a new job)
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      # Step 2: Set up Python
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+    # Step 2: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
 
-      # Step 3: Cache Poetry dependencies
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pypoetry
-            ~/.virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml', '**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
+    # Step 3: Download the wheel file artifact from the build job
+    - name: Download wheel file artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: poetry-wheel
+        path: ./dist
 
-      # Step 4: Install Poetry
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
+    # Step 4: Install the project with pip
+    - name: Install the project with pip
+      run: |
+        pip install ./dist/*.whl
 
-      # Step 5: Install dependencies using Poetry
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      # Step 6: Build the package using Poetry
-      - name: Build the package
-        run: |
-          poetry build
-
-      # Step 7: Install the package locally from the build directory
-      - name: Install the package
-        run: |
-          poetry install --no-root  # Install the built package
-
-      # Step 8: Verify the package is installed
-      - name: Verify package installation
-        run: |
-          cd examples
-          cd axial_turbine
-          poetry run python -m protoblade axial_turbine.toml
+    #Step 5 : Run an example case
+    - name : Run Example Case
+      run: |
+        cd examples
+        cd axial_turbine
+        python -m protoblade axial_turbine.toml
